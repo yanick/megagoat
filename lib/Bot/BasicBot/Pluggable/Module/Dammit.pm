@@ -6,11 +6,28 @@ use warnings;
 use base qw/ Bot::BasicBot::Pluggable::Module /;
 
 sub help {
-    return "provide reviewers";
+    return "record how damned somebody is";
 }
 
 sub admin {
     my( $self, $mess ) = @_;
+
+    if ( $mess->{body} =~ /damnation top (\d+)/ ) {
+        my $n = $1;
+
+        my %damned;
+        for ( $self->store_keys ) {
+            $damned{$_} = $self->get($_);
+        }
+
+        my $chart = "the top $n damned are: ";
+        for ( reverse sort { $damned{$a} <=> $damned{$b} } keys %damned ) {
+            last unless $n-- and $_;
+            $chart .= sprintf "%s (%d) ", $_, $damned{$_};
+        }
+
+        return $chart;
+    }
 
     my($dammit) = $mess->{body} =~ /dam[mn]it\s+(\S+)/ or return 0;
 
